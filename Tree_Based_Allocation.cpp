@@ -55,7 +55,7 @@ void Tree_Based_Allocation::PushRoot(Node* n_root)
 	root->set_index(n_root->get_index());
 	root->set_S(n_root->get_S());
 
-	U.push_back(n_root);
+	U.push_back(root);
 }
 
 bool Tree_Based_Allocation::Construct_Tree()
@@ -430,7 +430,7 @@ void Tree_Based_Allocation::print_tree()
 	while(1)
 	{
 		if(child.empty()) break;
-		cout<<child[i]->get_index()<<endl;
-		i++;
+		cout<<child[0]->get_index()<<endl;
+		child.pop_front();
 	}
 }
