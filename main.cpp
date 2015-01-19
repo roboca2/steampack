@@ -11,7 +11,7 @@ int main()
 	int K = 4;
 	// number of types
 
-	int T[32] = {2, 4, 8, 0};
+	int T[32] = {8, 12, 24, 32, 0};
 	// report period of each type of machines
 
 	int I_k = 20;

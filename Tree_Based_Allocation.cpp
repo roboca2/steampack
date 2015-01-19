@@ -107,7 +107,7 @@ bool Tree_Based_Allocation::STEP1()
 	C_n.clear();
 	n_S = n_Node->get_S();
 	// if this part is error, then dynamic allocate n_S
-
+	memset(T_p, 0, 32);
 	for(int i=0; i<32; i++)
 	{
 		if(n_S[i]==0)break;
@@ -200,14 +200,14 @@ int Tree_Based_Allocation::STEP2()
 
 		if(T_p1_num > 1)
 		{
-			int* parent_1 = new int[32];
-			memset(parent_1,0,32*4);
+			int* T_p1_temp = new int[32];
+			memset(T_p1_temp,0,32*4);
 			for(int i=0; i<32; i++)
 			{
-				parent_1[i] = T_p1[i];
+				T_p1_temp[i] = T_p1[i];
 				if(T_p1[i+1]==0)break;
 			}
-			C_n.push_back(parent_1);
+			C_n.push_back(T_p1_temp);
 			//add T(1)_parent into C_n
 
 			memset(T_p,0,32);
@@ -225,11 +225,11 @@ int Tree_Based_Allocation::STEP2()
 
 		else if(T_p1_num==1)
 		{
-			int* parent_1 = new int[32];
-			memset(parent_1,0,32*4);
-			parent_1[0] = T_p1[0];
+			int* T_p1_temp = new int[32];
+			memset(T_p1_temp,0,32*4);
+			T_p1_temp[0] = T_p1[0];
 			
-			C_n.push_front(parent_1);
+			C_n.push_back(T_p1_temp);
 			return 3;
 		}
 	}
@@ -240,7 +240,7 @@ int Tree_Based_Allocation::STEP2()
 void Tree_Based_Allocation::STEP3()
 {
 	n_Node = U[0];
-	U.pop_back();
+	U.pop_front();
 	int size = C_n.size();
 
 	if(size>1)
@@ -259,7 +259,7 @@ void Tree_Based_Allocation::STEP3()
 
 	else if(C_n.size() == 1)
 	{
-		n_Node->set_leaf(false);
+		n_Node->set_leaf(true);
 		return;
 	}
 }
@@ -299,6 +299,7 @@ bool Tree_Based_Allocation::Calculator()
 
 	Prime_factor();
 	// caculate P(~T_parent), Q(~T_parent)
+	return true;
 }
 
 int Tree_Based_Allocation:: GCD(int a, int b)
@@ -349,7 +350,7 @@ void Tree_Based_Allocation::Prime_factor()
 		if(!target) break;
 		// end of array, break for loop!
 
-		for(p_num=2; ;p_num++) // Prime number is start "2"
+		for(p_num=1; ;p_num++) // Prime number is start "2"
 		{
 			remainder = target%p_num;
 			// if remainder is zero, it is dividable
@@ -371,8 +372,8 @@ void Tree_Based_Allocation::Prime_factor()
 				Prime_x[i][j]=p_num;
 				j++;
 				// increase j
-
-				p_num --;
+				if(p_num != 1)
+					p_num --;
 				// if p_num is prime factor, repeat this operation
 			}
 
@@ -421,16 +422,47 @@ void Tree_Based_Allocation::Prime_factor()
 void Tree_Based_Allocation::print_tree()
 {
 	int i=0;
+	int* S_n = new int[32];
+	memset(S_n,0,32);
+
 	deque<Node*> child = root->get_child();
-
-	Node* c_node = new Node();
-
-	cout<<root->get_index()<<endl;
+	
+	S_n = root->get_S();
+	cout<<"<< NODE "<<root->get_index()<<" >>"<<endl;
+	cout<<"S_n :{";
+	for(int i=0; i<32; i++)
+	{
+		if(S_n[i]==0)
+		{
+			cout<<"}"<<endl;
+			break;
+		}
+		if(i) cout<<", ";
+		cout<<S_n[i];
+			
+	}
+	cout<<endl;
 
 	while(1)
 	{
 		if(child.empty()) break;
-		cout<<child[0]->get_index()<<endl;
+		cout<<"<< NODE "<<child[0]->get_index()<<" >>";
+		if(child[0]->get_leaf() == true) cout<<" (LEAF NODE)"<<endl;
+		S_n = child[0]->get_S();
+		cout<<"S_n :{";
+		for(int i=0; i<32; i++)
+		{
+			if(S_n[i]==0)
+			{
+				cout<<"}"<<endl;
+				break;
+			}
+			if(i) cout<<", ";
+			cout<<S_n[i];
+			
+		}
+		cout<<endl;
 		child.pop_front();
+		memset(S_n,0,32);
 	}
 }
