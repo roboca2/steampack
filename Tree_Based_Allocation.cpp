@@ -408,7 +408,7 @@ void Tree_Based_Allocation::Prime_factor()
 		}
 	}
 
-/*
+
 	for(int i=0; i<32; i++)
 	{
 		if(P[i] == 0)break;
@@ -416,7 +416,7 @@ void Tree_Based_Allocation::Prime_factor()
 		cout<<P[i]<<"("<<Q[i]<<" times"<<")"<<"  ";
 	}
 	cout<<endl;
-*/
+
 }
 
 void Tree_Based_Allocation::print_tree()
@@ -428,7 +428,7 @@ void Tree_Based_Allocation::print_tree()
 	deque<Node*> child = root->get_child();
 	
 	S_n = root->get_S();
-	cout<<"<< NODE "<<root->get_index()<<" >>"<<endl;
+	cout<<endl<<"<< NODE "<<root->get_index()<<" >>"<<endl;
 	cout<<"S_n :{";
 	for(int i=0; i<32; i++)
 	{
