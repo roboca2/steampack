@@ -5,15 +5,19 @@ Node::Node(void)
 {
 	index=0;
 	G=0;
+	channels=0;
 	leaf=false;
-	memset(S, 0, 32);
+	memset(S, 0, 32*sizeof(int));
 }
 
 
 Node::~Node(void)
 {
 }
-
+void Node::set_channels(int new_channels)
+{
+	channels = new_channels;
+}
 void Node::set_index(int new_index)
 {
 	index = new_index;
@@ -40,6 +44,11 @@ void Node::set_child(Node* new_child)
 	Child.push_back(new_child);
 }
 
+
+int Node::get_channels()
+{
+	return channels;
+}
 
 int Node::get_index()
 {

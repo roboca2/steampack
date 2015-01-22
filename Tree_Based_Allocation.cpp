@@ -2,9 +2,37 @@
 #include "Tree_Based_Allocation.h"
 
 
-Tree_Based_Allocation::Tree_Based_Allocation(void)
+Tree_Based_Allocation::Tree_Based_Allocation()
 {
+	K=4;
+	I_k = 20;
+	memset(T, 0, 32*sizeof(int));
+	T[0] = TYPE1;
+	T[1] = TYPE2;
+	T[2] = TYPE3;
+	T[3] = TYPE4;
+
+	D_ik = new int*[K];
+	N_k = new int[K];
+
+	memset(N_k, 0, K*sizeof(int));
+
+	for(int i=0; i<K; i++)
+	{
+		D_ik[i] = new int[I_k];
+		for(int j=0; j<I_k; j++)
+		{
+			//D_ik[i][j] = rand()%D_max+1;
+			D_ik[i][j] = 1;
+			N_k[i] += D_ik[i][j];
+			cout<<D_ik[i][j]<<" ";
+		}
+		// D_ik  ramdomly selected
+		cout<<"     "<<N_k[i]<<endl;
+	}
+
 	t = 1;
+	
 	for(int i=0; i<32; i++)
 	{
 		T_p [i] = 0;
@@ -17,10 +45,6 @@ Tree_Based_Allocation::Tree_Based_Allocation(void)
 		Q[i] = 0;
 	}
 	gcd = 0;
-	p_x = 0;
-	q_x = 0;
-	i_x = 0;
-	m_x = 0;
 	J_s = 0;
 	// initialize
 }
@@ -42,56 +66,63 @@ void Tree_Based_Allocation::Initialize()
 		P[i] = 0;
 		Q[i] = 0;
 	}
-	gcd = 0;
-	p_x = 0;
-	q_x = 0;
-	i_x = 0;
-	m_x = 0;
 	J_s = 0;
 }
-void Tree_Based_Allocation::PushRoot(Node* n_root)
+void Tree_Based_Allocation::PushRoot()
 {
 	root = new Node;
-	root->set_index(n_root->get_index());
-	root->set_S(n_root->get_S());
+	root->set_index(t);
+	root->set_S(T);
 
 	U.push_back(root);
+	root_child.push_back(root);
 }
 
 bool Tree_Based_Allocation::Construct_Tree()
 {
+	PushRoot();
 	int step=1;
 	
 	while(step)
 	{
 		if(step == 1)
 		{
-			if(!STEP1()) break;;
-			step = 2;
+			step = tree_1();
+			if(step == -1) 
+				break;
 		}
 
 		else if(step == 2) 
 		{
-			step = STEP2();
+			step = tree_2();
 			Initialize();
 		}
 
-		else if(step ==3)
+		else if(step == 3)
 		{ 
-			STEP3();
+			step = tree_3();
 			Initialize();
-			step = 1;
 		}	
+		else
+		{
+			cout<<"Construct error"<<endl;
+			break;
+		}
 	}
 	
 	return true;
 }
 
-bool Tree_Based_Allocation::STEP1()
+Node* Tree_Based_Allocation::get_root()
+{
+	return root;
+}
+
+int Tree_Based_Allocation::tree_1()
 {
 	////STEP1///////////////////////////////////////////////////////////
 
-	if(U.empty()) return false;
+	if(U.empty()) return 0;
 	// Algorithm is already Construct tree structure
 
 
@@ -115,11 +146,11 @@ bool Tree_Based_Allocation::STEP1()
 	}
 	// T_parent = S_n
 
-	return true;
+	return 2;
 	////STEP1 END///////////////////////////////////////////////////////////
 }
 
-int Tree_Based_Allocation::STEP2()
+int Tree_Based_Allocation::tree_2()
 {
 	int j,q;
 	j=0;q=0;
@@ -237,7 +268,7 @@ int Tree_Based_Allocation::STEP2()
 	////STEP2 END///////////////////////////////////////////////////
 }
 
-void Tree_Based_Allocation::STEP3()
+int Tree_Based_Allocation::tree_3()
 {
 	n_Node = U[0];
 	U.pop_front();
@@ -253,41 +284,21 @@ void Tree_Based_Allocation::STEP3()
 			t_Node->set_S(C_n[i]);
 			n_Node->set_child(t_Node);
 			U.push_back(t_Node);
+			root_child.push_back(t_Node);
 		}
-		return;
+		return 1;
 	}
 
 	else if(C_n.size() == 1)
 	{
 		n_Node->set_leaf(true);
-		return;
+		return 1;
 	}
 }
 
 bool Tree_Based_Allocation::Calculator()
 {
-	//// GCD /////////////////////////////////////////////////////////
-	gcd =T_p[0];
-
-	if(!gcd)
-	{
-		cout<<"T_p is empty"<<endl;
-		return false;
-	}
-	// T_p is empty this is abnormal case
-
-	for(int i=1; i<32; i++)
-	{	
-		if(T_p[i] == 0)
-			break;
-		// if nubmer of element of T_p is two, gcd is T_p[0]
-
-		gcd = GCD(gcd, T_p[i]);
-		// calculate GCD between (gcd,T_p[i]), after this for loop, finaly we have real gcd 
-	}
-
-	//// GCD END ///////////////////////////////////////////////////
-
+	Cal_gcd(T_p);
 	//// ~T_parent /////////////////////////////////////////////////////////
 	for(int i=0; i<32; i++)
 	{	
@@ -302,7 +313,7 @@ bool Tree_Based_Allocation::Calculator()
 	return true;
 }
 
-int Tree_Based_Allocation:: GCD(int a, int b)
+int Tree_Based_Allocation::GCD(int a, int b)
 {
 	int A=a;
 	int B=b;
@@ -320,6 +331,27 @@ int Tree_Based_Allocation:: GCD(int a, int b)
 
 	return B;
 	// return GCD
+}
+int Tree_Based_Allocation::Cal_gcd(int* a)
+{
+	gcd =a[0];
+	
+	if(!gcd)
+	{
+		cout<<"list is empty"<<endl;
+		return false;
+	}
+
+	for(int i=1; i<32; i++)
+	{	
+		if(a[i] == 0)
+			break;
+
+		gcd = GCD(gcd, a[i]);
+		// calculate GCD between (gcd,T_p[i]), after this for loop, finaly we have real gcd 
+	}
+	return gcd;
+	//// GCD END ///////////////////////////////////////////////////
 }
 
 void Tree_Based_Allocation::Prime_factor()
@@ -466,3 +498,167 @@ void Tree_Based_Allocation::print_tree()
 		memset(S_n,0,32);
 	}
 }
+
+Node* Tree_Based_Allocation::search(int index)
+{
+	int len = root_child.size();
+
+	for(int i=0; i<len; i++)
+	{
+		if(root_child[i]->get_index() == index)
+			return root_child[i];
+	}
+
+}
+
+bool Tree_Based_Allocation::Allocater()
+{
+	U.clear();
+	L_n.clear();
+	f = new double[t];
+	memset(f, 0, t*sizeof(double));
+	Cal_f(1);
+	root->set_channels(Cal_R_tree(f));
+	int step=1;
+	
+	while(step)
+	{
+		if(step == 1)
+		{
+			step = allocate_1();
+			if(step == -1) 
+				break;
+		}
+
+		else if(step == 2) 
+		{
+			step = allocate_2();
+			Initialize();
+		}
+
+		else if(step == 3)
+		{ 
+			step = allocate_3();
+			Initialize();
+		}	
+		else
+		{
+			cout<<"Construct error"<<endl;
+			break;
+		}
+	}
+	
+	return true;
+}
+
+int Tree_Based_Allocation::allocate_1()
+{
+	if(U.empty())
+		return -1;
+	// if U = NULL, finish the algorithm
+
+	n_Node = U[0];
+	// otherwise pick arbitrarily a node n, which has been allocated f_n level-Gn subchannels
+	
+	U.pop_front();
+	// remove this node from U
+
+	L_n = n_Node->get_child();
+	// L_n denote the set of child nodes of node n;
+
+	
+
+	if(n_Node->get_leaf())
+		return 3;
+	// node n is leaf node-> go to step3
+	else
+		return 2;
+	// node n is non-leaf node -> go to step2
+	
+}
+int Tree_Based_Allocation::allocate_2()
+{
+
+	return 1;
+}
+int Tree_Based_Allocation::allocate_3()
+{
+	return 1;
+}
+
+int Tree_Based_Allocation::Cal_R_tree(double* f)
+{
+	double R_tree = 0.0;
+	R_tree = f[0] / root->get_G();
+
+	return ceil(R_tree);
+}
+
+int Tree_Based_Allocation::Cal_f(int node_index)
+{
+	Node* cur_node = search(node_index);
+	deque<Node*> child = cur_node->get_child();
+
+	cur_node->set_G(Cal_gcd(cur_node->get_S()));
+	// setting G
+	int size = child.size();
+
+	int* V_n = cur_node->get_S();
+
+	double f_n=0.0;
+	double T_k=0.0;
+	double r_value=0.0;
+	double G_i =0.0;
+	if(cur_node->get_leaf())
+	{
+		for(int i=0; i<4; i++)
+		{
+			if(V_n[i] == 0)
+				break;
+			else if(V_n[i] == TYPE1)
+			{
+				T_k = TYPE1;
+				f_n =  (N_k[0]*cur_node->get_G())/T_k;
+				f[node_index-1] += ceil(f_n);
+			}
+			
+			else if(V_n[i] == TYPE2)
+			{
+				T_k = TYPE2;
+				f_n = (N_k[1]*cur_node->get_G())/T_k;
+				f[node_index-1] += ceil(f_n);
+			}
+			
+			else if(V_n[i] == TYPE3)
+			{
+				T_k = TYPE3;
+				f_n = (N_k[2]*cur_node->get_G())/T_k;
+				f[node_index-1] += ceil(f_n);
+			}
+			
+			else if(V_n[i] == TYPE4)
+			{
+				T_k = TYPE4;
+				f_n = (N_k[3]*cur_node->get_G()) / T_k;
+				f[node_index-1] += ceil(f_n);
+			}
+			else
+				break;
+
+		}
+		return f[node_index-1];
+	}
+	else
+	{
+		for(int i=0; i<size; i++)
+		{
+			G_i = Cal_gcd(child[i]->get_S());
+			r_value = Cal_f(child[i]->get_index());
+			r_value = (r_value * (cur_node->get_G())) / G_i;
+			f[node_index-1] += ceil(r_value);
+		}
+	}
+	return 0;
+}
+
+
