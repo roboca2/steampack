@@ -58,7 +58,7 @@ def combination(input_list, k):
     combination_list = combination.split("//")
     combination_list.sort()
     del combination_list[0]
-    print("I'm not die! please wait....")
+    print("please wait..(maybe longer than your life)")
   print(combination_list)
 
 input_str = input("Insert list (each numbers are separated by space) :") 
